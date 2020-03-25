@@ -1,13 +1,5 @@
-var config = {
-    wager: {
-        value: 10000, type: 'balance', label: 'wager'
-    },
-    payout: {
-        value: 50, type: 'multiplier', label: 'payout'
-    }
-};
+// Config
 
-// id:hash:bust
 var sample = [
     '20000:d4eb4326ac6375b108b1790c8e0beeda8331650ea7aec95828c7f8cc03d3d44c:4.03',
     '19999:e51c22b79911082f9b4c806a4afcb149624842a534b545818bd8e46a44d42243:4.19',
@@ -140,17 +132,6 @@ class Engine {
         // console.log('Listener of ' + gameState + ' set')
     }
 
-    displayLogs() {
-        let lastGame = this.history.first()
-        if (lastGame.cashedAt) {
-            var profit = Math.round(
-                (lastGame.wager * lastGame.cashedAt - lastGame.wager) / 100)
-            console.log('Won ' + profit + ' bits');
-        } else {
-            console.log('Lost ' + Math.round(lastGame.wager / 100) + ' bits');
-        }
-    }
-    
     logs() {
         console.log("\n\x1b[1m-----------------------------------")
         console.log(" Game Played : " + this.index)
@@ -166,7 +147,7 @@ class Engine {
         console.log("\x1b[1m Balance : " + Math.round(this.balance / 100))
         console.log("-----------------------------------\n")
     }
-    
+
     gameLoop() {
         this.index = 0
         while (this.index < sample.length) {
@@ -183,71 +164,21 @@ class Engine {
             this.index++ // next bet
             this.atl = Math.min(this.balance, this.atl)
             this.ath = Math.max(this.balance, this.ath)
-            console.log('Balance : ' + Math.round(this.balance / 100))
-            // displayLogs()
+            // console.log('Balance : ' + Math.round(this.balance / 100))
         }
         this.logs()
     }
 }
 
-function onGameSTARTING() {
-    let bet = 100
-    let payout = 2
-    engine.bet(bet, payout)
-    console.log('Betting ' + Math.round(bet / 100) + ' bits on ' + payout + 'x')
-}
-
-function onGameSTARTED() {
-    // engine.bet(100, 2) // test
-}
-
-function onGameENDED() {
-    // script do stuff
-}
-
 var engine = new Engine(10000);
-// engine.on('GAME_STARTING', onGameSTARTING)
-// engine.on('GAME_STARTED', onGameSTARTED)
-// Try to bet immediately when script starts
 
-engine.on('GAME_STARTING', onGameStarted);
-engine.on('GAME_ENDED', onGameEnded);
-// engine.on('GAME_ENDED', onGameENDED)
+// try {
+//     process.exit(0)
+// } catch (err) {
+//     console.log('Error: ' + err)
+//     process.exit(1)
+// }
+
+// Script
 
 engine.gameLoop()
-
-// console.log(this.history.first())
-
-try {
-    process.exit(0)
-} catch (err) {
-    console.log('Error: ' + err)
-    process.exit(1)
-}
-
-
-
-function onGameStarted() {
-    makeBet();
-}
-
-function onGameEnded() {
-    var lastGame = engine.history.first();
-
-    // If we wagered, it means we played
-    if (!lastGame.wager) {
-        return;
-    }
-
-    if (lastGame.cashedAt) {
-        var profit = Math.round((config.wager.value * config.payout.value - config.wager.value) / 100)
-        console.log('we won', profit, 'bits');
-    } else {
-        console.log('we lost', Math.round(config.wager.value / 100), 'bits');
-    }
-}
-
-function makeBet() {
-    engine.bet(config.wager.value, config.payout.value)
-    console.log('betting', Math.round(config.wager.value / 100), 'on', config.payout.value, 'x');
-}
