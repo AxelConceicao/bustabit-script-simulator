@@ -51,14 +51,10 @@ class Merger:
     def merge(self):
         script, config = self.getScript()
         engine = self.getEngine()
-        temp = engine[:1] + config + engine[:len(engine) - 2] + script + ["\n"] + engine [len(engine)-3:]
+        temp = engine[:1] + config + engine[:len(engine) - 11] + script[len(config):] + ["\n"] + engine[len(engine)-12:]
         file = open("temp.js", "w")
         for line in temp:
             file.write(line)
-
-
-
-
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

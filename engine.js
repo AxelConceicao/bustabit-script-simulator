@@ -1,19 +1,5 @@
 // Config
 
-var sample = [
-    '20000:d4eb4326ac6375b108b1790c8e0beeda8331650ea7aec95828c7f8cc03d3d44c:4.03',
-    '19999:e51c22b79911082f9b4c806a4afcb149624842a534b545818bd8e46a44d42243:4.19',
-    '19998:57fb9c4a4f5ccfce361c9afd8ab2bc5122a572faad1c295da0fdcc4b28755695:1.7',
-    '19997:c7b4083bf5dcf4bf52a78b290b26eb16c217c4a177461df12f0ef0bc4a98c96e:13.61',
-    '19996:242dff76a1bca6823a7f8cc5499077ec15e2a8590b9d286d449e6ca0df8c48d8:6.4',
-    '19995:9fc2465dd4d9137714f4350145dfd2814758a1001e3493d762e8f9115255f762:1.62',
-    '19994:af250d993822b96ad54ac76fa3069b9758b70c4a5e1c57513a0345f8d4c33b96:6.95',
-    '19993:5b46281091f25bd6327dfccb59ecc9d41953438a785e17e314ac221bb722d8d9:431.5',
-    '19992:a53705286fbe25d6fc1dbeb13c40c216adb95b7c5311d60347698acbdbd091ee:5.21',
-    '19991:e057827e45d786392b30e4550e00e9d8ff1183090c92a99e4616a34b11686193:3.65',
-    '19990:fc42ac515fb68519597618d5a068f1fb539614d53d1ec5e32e4e29509d9b2fac:1.04',
-]
-
 function isInt(n) {
     return Number(n) === n && n % 1 === 0;
 }
@@ -59,7 +45,8 @@ class History {
 }
 
 class Engine {
-    constructor(balance) {
+    constructor(balance, games) {
+        this.games = games
         this.index = 0
         this.balance = balance * 100
         this.startingBalance = this.balance
@@ -120,7 +107,7 @@ class Engine {
             this.balance -= satoshis
         }
 
-        let temp = sample[this.index].split(':')
+        let temp = this.games[this.index].split(':')
         let game = new Game(temp[0], temp[1], satoshis)
         this.history.push(game)
         this.currentBet = satoshis
@@ -129,7 +116,7 @@ class Engine {
 
     on(gameState, listener) {
         this.gameStateOn[gameState] = listener
-        // console.log('Listener of ' + gameState + ' set')
+        console.log('Listener of ' + gameState + ' set')
     }
 
     logs() {
@@ -150,10 +137,10 @@ class Engine {
 
     gameLoop() {
         this.index = 0
-        while (this.index < sample.length) {
+        while (this.index < this.games.length) {
             this.gameState = 'GAME_STARTING'
             this.gameState = 'GAME_STARTED'
-            this.history.first().bust = sample[this.index].split(':')[2]
+            this.history.first().bust = this.games[this.index].split(':')[2]
             if (this.history.first().bust >= this.currentPayout) { // Won
                 this.balance += this.currentBet * this.currentPayout
                 this.history.first().cashedAt = this.currentPayout
@@ -170,15 +157,21 @@ class Engine {
     }
 }
 
-var engine = new Engine(10000);
+function loadFile(filename) {
+    var fs = require('fs');
+    fs.readFile(filename, 'utf8', function (err, contents) {
+        games = contents.split('\n')
+        var engine = new Engine(1000000, games.reverse());
 
-// try {
-//     process.exit(0)
-// } catch (err) {
-//     console.log('Error: ' + err)
-//     process.exit(1)
-// }
+        // Script
 
-// Script
+        engine.gameLoop()
+    });
+}
 
-engine.gameLoop()
+if (process.argv[2] === undefined) {
+    console.log('USAGE: ./simulator file')
+    process.exit(1)
+} else {
+    loadFile(process.argv[2])
+}
