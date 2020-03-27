@@ -41,7 +41,7 @@ class Merger:
             sys.stderr.write("No config found in script\n")
             exit(84)
         for i in range(0, len(data)):
-            data[i] = data[i].replace("log", "console.log")
+            data[i] = data[i].replace("log", "// console.log")
         return data, config
 
     def getEngine(self):
@@ -51,7 +51,7 @@ class Merger:
     def merge(self):
         script, config = self.getScript()
         engine = self.getEngine()
-        temp = engine[:1] + config + engine[:len(engine) - 11] + script[len(config):] + ["\n"] + engine[len(engine)-12:]
+        temp = engine[:1] + config + engine[:len(engine) - 18] + script[len(config):] + ["\n"] + engine[len(engine)-19:]
         file = open("temp.js", "w")
         for line in temp:
             file.write(line)
