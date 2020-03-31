@@ -1,35 +1,14 @@
-import sys
-import json
-
-def isFileExist(filename):
-    try:
-        file = open(filename, "r")
-        file.close()
-    except:
-        sys.stderr.write("No such file : " + filename + "\n")
-        exit(84)
-
-def loadFile(filename):
-    data = []
-    file = open(filename, "r")
-    for line in file.readlines():
-        if line != "":
-            data.append(line)
-    file.close()
-    return data
+import misc
 
 class Merger:
-    scriptName = None
-    engineName = 'engine.js'
+    scriptfile = None
+    enginefile = 'engine.js'
 
-    def __init__(self, scriptName):
-        isFileExist(scriptName)
-        self.scriptName = scriptName
-        isFileExist(self.engineName)
-        self.getScript()
+    def __init__(self, scriptfile):
+        self.scriptfile = scriptfile
 
     def getScript(self):
-        data = loadFile(self.scriptName)
+        data = misc.loadFile(self.scriptfile)
         config = []
         for i in range(0, len(data)):
             if data[i].replace('\n', '').replace(' ', '') == "varconfig={":
@@ -39,27 +18,17 @@ class Merger:
                         break
         if not config:
             sys.stderr.write("No config found in script\n")
-            exit(84)
+            exit(1)
         for i in range(0, len(data)):
-            data[i] = data[i].replace("log", "// console.log")
+            data[i] = data[i].replace("exit", "process.exit")
+            data[i] = data[i].replace("log", "console.log")
+            # data[i] = data[i].replace("log", "// console.log")
         return data, config
-
-    def getEngine(self):
-        data = loadFile(self.engineName)
-        return data
 
     def merge(self):
         script, config = self.getScript()
-        engine = self.getEngine()
-        temp = engine[:1] + config + engine[:len(engine) - 18] + script[len(config):] + ["\n"] + engine[len(engine)-19:]
-        file = open("temp.js", "w")
-        for line in temp:
-            file.write(line)
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        sys.stderr.write("Invalid arguments\n")
-        exit(84)
-    merger = Merger(sys.argv[1])
-    merger.merge()
-    exit(0)
+        engine = misc.loadFile(self.enginefile)
+        temp = engine[:1] + config + engine[:len(engine) - 18]
+        temp += script[len(config):] + ["\n"] + engine[len(engine)-19:]
+        with open("temp.js", "w") as file:
+            for line in temp : file.write(line)

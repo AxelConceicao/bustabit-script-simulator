@@ -12,11 +12,17 @@ function isNumber(n) {
     return Number(n) === n;
 }
 
+function mymedian(arr) {
+    const mid = Math.floor(arr.length / 2),
+        nums = [...arr].sort((a, b) => a - b);
+    return arr.length % 2 !== 0 ? nums[mid] : (parseFloat(nums[mid - 1]) + parseFloat(nums[mid])) / 2;
+}
+
 class Game {
     constructor(id, hash, wager) {
         this.id = id
         this.hash = hash
-        this.bust = undefined
+        this.bust = 0
         this.cashedAt = undefined
         this.wager = wager
     }
@@ -109,7 +115,7 @@ class Engine {
         } else {
             this.balance -= satoshis
         }
-
+        // console.log('Bet : ' + satoshis + ' Payout : ' + payout)
         let temp = this.games[this.index].split(':')
         let game = new Game(temp[0], temp[1], satoshis)
         this.history.push(game)
@@ -122,21 +128,55 @@ class Engine {
         console.log('Listener of ' + gameState + ' set')
     }
 
+    median() {
+        let tab = []
+        let games = this.history.toArray()
+        if (games.length < 10) return 0
+        for (let i = 0; i < 100000; i++) {
+            if (games[i] === undefined) break
+            let game = games[i]
+            if (game.wager === config.wager.value) break
+            tab.push(game.bust)
+        }
+        return mymedian(tab)
+    }
+
     logs() {
         console.log("\n\x1b[1m-----------------------------------")
+        // console.log(" Median : " + this.median())
         console.log(" Game Played : " + this.gamePlayed)
         console.log(" Starting Balance : " + Math.round(this.startingBalance / 100))
-        console.log(" Profit ATL : " + (Math.round(this.atl / 100) - Math.round(this.startingBalance / 100)))
-        console.log(" Profit ATH : " + (Math.round(this.ath / 100) - Math.round(this.startingBalance / 100)))
-        let profit = Math.round(this.balance / 100) - Math.round(this.startingBalance / 100)
+        console.log(" Profit ATL : " +
+            (Math.round(this.atl / 100) - Math.round(this.startingBalance / 100)))
+        console.log(" Profit ATH : " +
+            (Math.round(this.ath / 100) - Math.round(this.startingBalance / 100)))
+        let profit = Math.round(this.balance / 100) -
+            Math.round(this.startingBalance / 100)
         if (profit > 0) {
-            console.log(" Profit : \x1b[32m" + profit + "\x1b[0m")
+            console.log(" Profit : \x1b[32m" + profit + "\x1b[0m\x1b[1m")
         } else {
-            console.log(" Profit : \x1b[31m" + profit + "\x1b[0m")
+            console.log(" Profit : \x1b[31m" + profit + "\x1b[0m\x1b[1m")
         }
-        console.log("\x1b[1m Balance : " + Math.round(this.balance / 100))
-        console.log("\x1b[1m Current Game : " + this.games[this.index])
+        console.log(" Profit per Day : " + 
+        Math.round(((this.balance - this.startingBalance) / 100) 
+        / (this.gamePlayed / 3800)))
+        console.log(" Profit per Hour : " + 
+        Math.round((this.balance - this.startingBalance) 
+        / (this.gamePlayed / 3800) / 24) / 100)
+        console.log(" Balance : " + Math.round(this.balance / 100))
+        console.log(" Current Game : " + this.games[this.index])
         console.log("-----------------------------------\n\x1b[0m")
+    }
+
+    crashes() {
+        console.log('List of all crashes')
+        this.crashList.sort(function (a, b) {
+            return parseFloat(a[0]) - parseFloat(b[0]);
+        }).forEach(function (item) {
+            if (item[0] < -10000) {
+                console.log(item[0] + ':' + item[1] + ':' + item[2] + ':' + item[3] + ':' + item[4])
+            }
+        })
     }
 
     gameLoop() {
@@ -161,26 +201,24 @@ class Engine {
             if (this.balance < this.crash) {
                 this.crash = this.balance
                 this.crashInfo = this.games[this.index].split(':')
+                this.crashInfo.push(0)
+                // this.crashInfo.push(this.median())
             }
             this.currentBet = undefined
             this.currentPayout = undefined
             this.index++ // next bet
             this.gamePlayed++
-            if (this.gamePlayed % 5000 == 0) {
+            if (this.gamePlayed % 1000 == 0 && this.crashInfo !== undefined) {
                 this.logs()
                 this.crashInfo.unshift((this.crash - this.balance) / 100)
                 console.log(this.crashInfo)
                 this.crashList.push(this.crashInfo)
                 this.crash = this.balance
+                // this.crashes()
             }
         }
         this.logs()
-        console.log('List of all crashes')
-        this.crashList.sort(function (a, b) {
-            return parseFloat(a[0]) - parseFloat(b[0]);
-        }).forEach(function (item) {
-            console.log(item[0] + ':' + item[1] + ':' + item[2] + ':' + item[3])
-        })
+        this.crashes()
     }
 }
 
@@ -188,7 +226,7 @@ function loadFile(filename) {
     var fs = require('fs');
     fs.readFile(filename, 'utf8', function (err, contents) {
         games = contents.split('\n')
-        var engine = new Engine(10000000, games.reverse());
+        var engine = new Engine(1000000000, games.reverse());
 
         // Script
 
