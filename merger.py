@@ -1,13 +1,17 @@
+import os
 import misc
 
 class Merger:
     scriptfile = None
     enginefile = 'engine.js'
-    gamesperfile = None
+    tempdir = None
+    logs = False
 
-    def __init__(self, scriptfile, gamesperfile):
+    def __init__(self, scriptfile, tempdir, options,):
+        self.tempdir = tempdir
         self.scriptfile = scriptfile
-        self.gamesperfile = gamesperfile
+        for av in options:
+            if av[0] == '-l' : self.logs = True
 
     def getScript(self):
         data = misc.loadFile(self.scriptfile)
@@ -23,7 +27,7 @@ class Merger:
             exit(1)
         for i in range(0, len(data)):
             data[i] = data[i].replace("exit", "process.exit")
-            if (self.gamesperfile < 50000):
+            if (self.logs):
                 data[i] = data[i].replace("log", "console.log")
             else:
                 data[i] = data[i].replace("log", "// console.log")
@@ -35,6 +39,6 @@ class Merger:
         engine = misc.loadFile(self.enginefile)
         temp = engine[:1] + config + engine[:len(engine) - 18]
         temp += script[len(config):] + ["\n"] + engine[len(engine)-19:]
-        with open("temp.js", "w") as file:
+        with open(os.getcwd() + "/" + self.tempdir + "/script.js", "w") as file:
             for line in temp : file.write(line)
         print("'" + self.scriptfile + "' merged")
