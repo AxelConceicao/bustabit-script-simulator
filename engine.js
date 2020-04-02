@@ -4,18 +4,8 @@ function isInt(n) {
     return Number(n) === n && n % 1 === 0;
 }
 
-function isFloat(n) {
-    return Number(n) === n && n % 1 !== 0;
-}
-
 function isNumber(n) {
     return Number(n) === n;
-}
-
-function mymedian(arr) {
-    const mid = Math.floor(arr.length / 2),
-        nums = [...arr].sort((a, b) => a - b);
-    return arr.length % 2 !== 0 ? nums[mid] : (parseFloat(nums[mid - 1]) + parseFloat(nums[mid])) / 2;
 }
 
 class Game {
@@ -47,13 +37,14 @@ class History {
 
     push(game) {
         this.history.unshift(game)
+        if (this.history.length > 50) this.history.splice(-1, 1)
     }
 }
 
 class Engine {
     constructor(balance, games) {
         this.games = games
-        this.gamePlayed = 1
+        this.gamePlayed = 0
         this.index = 0
         this.balance = balance * 100
         this.startingBalance = this.balance
@@ -115,7 +106,6 @@ class Engine {
         } else {
             this.balance -= satoshis
         }
-        // console.log('Bet : ' + satoshis + ' Payout : ' + payout)
         let temp = this.games[this.index].split(':')
         let game = new Game(temp[0], temp[1], satoshis)
         this.history.push(game)
@@ -128,22 +118,8 @@ class Engine {
         console.log('Listener of ' + gameState + ' set')
     }
 
-    median() {
-        let tab = []
-        let games = this.history.toArray()
-        if (games.length < 10) return 0
-        for (let i = 0; i < 100000; i++) {
-            if (games[i] === undefined) break
-            let game = games[i]
-            if (game.wager === config.wager.value) break
-            tab.push(game.bust)
-        }
-        return mymedian(tab)
-    }
-
     logs() {
         console.log("\n\x1b[1m-----------------------------------")
-        // console.log(" Median : " + this.median())
         console.log(" Game Played : " + this.gamePlayed)
         console.log(" Starting Balance : " + Math.round(this.startingBalance / 100))
         console.log(" Profit ATL : " +
@@ -157,65 +133,71 @@ class Engine {
         } else {
             console.log(" Profit : \x1b[31m" + profit + "\x1b[0m\x1b[1m")
         }
-        console.log(" Profit per Day : " + 
-        Math.round(((this.balance - this.startingBalance) / 100) 
-        / (this.gamePlayed / 3800)))
-        console.log(" Profit per Hour : " + 
-        Math.round((this.balance - this.startingBalance) 
-        / (this.gamePlayed / 3800) / 24) / 100)
+        console.log(" Profit per Day : " +
+            Math.round(((this.balance - this.startingBalance) / 100)
+                / (this.gamePlayed / 3800)))
+        console.log(" Profit per Hour : " +
+            Math.round((this.balance - this.startingBalance)
+                / (this.gamePlayed / 3800) / 24) / 100)
         console.log(" Balance : " + Math.round(this.balance / 100))
-        console.log(" Current Game : " + this.games[this.index])
         console.log("-----------------------------------\n\x1b[0m")
     }
 
     crashes() {
-        console.log('List of all crashes')
+        console.log('List of the 25 biggest crashes (lowest ATL every 1000 games without counting profit):')
+        console.log('ATL:GAMEID:HASH:BUST')
         this.crashList.sort(function (a, b) {
             return parseFloat(a[0]) - parseFloat(b[0]);
-        }).forEach(function (item) {
-            if (item[0] < -10000) {
-                console.log(item[0] + ':' + item[1] + ':' + item[2] + ':' + item[3] + ':' + item[4])
-            }
+        }).splice(0, 25).forEach(function (item) {
+            console.log(item[0] + ':' + item[1] + ':' + item[2] + ':' + item[3])
         })
+    }
+
+    onGameStarting() {
+
+    }
+
+    onGameStarted() {
+        this.history.first().bust = this.games[this.index].split(':')[2]
+        if (this.history.first().bust >= this.currentPayout) { // Won
+            this.balance += this.currentBet * this.currentPayout
+            this.history.first().cashedAt = this.currentPayout
+        }
+    }
+
+    onGameEnded() {
+        this.atl = Math.min(this.atl, this.balance)
+        this.ath = Math.max(this.ath, this.balance)
+        if (this.balance < this.crash) {
+            this.crash = this.balance
+            this.crashInfo = this.games[this.index].split(':')
+        }
+        this.currentBet = undefined
+        this.currentPayout = undefined
+        this.index++
+        this.gamePlayed++
+        if (this.gamePlayed % 1000 == 0 && this.crashInfo !== undefined) {
+            this.crashInfo.unshift((this.crash - this.balance) / 100)
+            this.crashList.push(this.crashInfo)
+            this.crash = this.balance
+        }
     }
 
     gameLoop() {
         this.index = 0
         while (this.index < this.games.length) {
-            while (this.games[this.index].split(':').length != 3 || this.games[this.index][0] === '#') {
-                console.log("Invalid line (ignored) : " + this.games[this.index])
+            while (this.games[this.index].split(':').length != 3
+                || this.games[this.index][0] === '#') {
                 this.index++
                 if (this.games[this.index] === undefined) break
             }
             if (this.games[this.index] === undefined) break
             this.gameState = 'GAME_STARTING'
+            this.onGameStarting()
             this.gameState = 'GAME_STARTED'
-            this.history.first().bust = this.games[this.index].split(':')[2]
-            if (this.history.first().bust >= this.currentPayout) { // Won
-                this.balance += this.currentBet * this.currentPayout
-                this.history.first().cashedAt = this.currentPayout
-            }
+            this.onGameStarted()
             this.gameState = 'GAME_ENDED'
-            this.atl = Math.min(this.atl, this.balance)
-            this.ath = Math.max(this.ath, this.balance)
-            if (this.balance < this.crash) {
-                this.crash = this.balance
-                this.crashInfo = this.games[this.index].split(':')
-                this.crashInfo.push(0)
-                // this.crashInfo.push(this.median())
-            }
-            this.currentBet = undefined
-            this.currentPayout = undefined
-            this.index++ // next bet
-            this.gamePlayed++
-            if (this.gamePlayed % 1000 == 0 && this.crashInfo !== undefined) {
-                this.logs()
-                this.crashInfo.unshift((this.crash - this.balance) / 100)
-                console.log(this.crashInfo)
-                this.crashList.push(this.crashInfo)
-                this.crash = this.balance
-                // this.crashes()
-            }
+            this.onGameEnded()
         }
         this.logs()
         this.crashes()
@@ -242,7 +224,7 @@ function loadFile(filename) {
 }
 
 if (process.argv[2] === undefined) {
-    console.log('USAGE: ./engine.js testfile')
+    console.log('Invalid arguments')
     process.exit(1)
 } else {
     loadFile(process.argv[2])
