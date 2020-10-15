@@ -1,20 +1,18 @@
 import os
+import sys
 import misc
 
 class Merger:
-    scriptfile = None
     enginefile = 'engine.js'
     tempdir = None
-    logs = False
+    args = []
 
-    def __init__(self, scriptfile, tempdir, options,):
+    def __init__(self, args, tempdir):
+        self.args = args
         self.tempdir = tempdir
-        self.scriptfile = scriptfile
-        for av in options:
-            if av[0] == '-l' : self.logs = True
 
     def getScript(self):
-        data = misc.loadFile(self.scriptfile)
+        data = misc.loadFile(self.args.script)
         config = []
         for i in range(0, len(data)):
             if data[i].replace('\n', '').replace(' ', '') == "varconfig={":
@@ -26,8 +24,7 @@ class Merger:
             sys.stderr.write("No config found in script\n")
             exit(1)
         for i in range(0, len(data)):
-            data[i] = data[i].replace("exit", "process.exit")
-            if (self.logs):
+            if (self.args.logs):
                 data[i] = data[i].replace("log", "console.log")
             else:
                 data[i] = data[i].replace("log", "// console.log")
@@ -41,4 +38,4 @@ class Merger:
         temp += script[len(config):] + ["\n"] + engine[len(engine)-19:]
         with open(os.getcwd() + "/" + self.tempdir + "/script.js", "w") as file:
             for line in temp : file.write(line)
-        print("'" + self.scriptfile + "' merged")
+        print("'" + self.args.script + "' merged")

@@ -1,11 +1,12 @@
 import os
 import sys
+import errno
 
-def isFileExist(file):
-    if not os.path.isfile(file): 
-        sys.stderr.write("No such file : " + file + "\n")
-        exit(1)
-    return True
+def isFileExist(filename):
+    if os.path.isfile(filename):
+        return filename
+    else:
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
 
 def loadFile(filename):
     data = []
@@ -13,10 +14,3 @@ def loadFile(filename):
         for line in file.readlines():
             if line != "" : data.append(line)
     return data
-
-def printUsage():
-    print("USAGE\n\tpython3 simulator.py SCRIPT TESTFILE")
-    print("\nDESCRIPTION")
-    print("\tSCRIPT\t\tscript to test")
-    print("\tTESTFILE\tfile containing the games")
-    print()

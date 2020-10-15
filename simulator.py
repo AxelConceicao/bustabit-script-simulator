@@ -1,37 +1,28 @@
-import os.path
-import sys
 import misc
 import merger
 import cleaner
+import argparse
 import subprocess
 
 class Simulator:
-    scriptfile = None
-    testfile = None
     tempdir = ".temp"
-    options = []
+    args = []
 
-    def __init__(self, scriptfile, testfile, options):
-        self.options = options
-        misc.isFileExist(scriptfile); self.scriptfile = scriptfile
-        misc.isFileExist(testfile); self.testfile = testfile
-        cleaner.Cleaner(self.testfile, self.tempdir).clean()
-        merger.Merger(self.scriptfile, self.tempdir, self.options).merge()
+    def __init__(self, args):
+        self.args = args
+        cleaner.Cleaner(self.args, self.tempdir).clean()
+        merger.Merger(self.args, self.tempdir).merge()
 
     def start(self):
         print("Starting...")
-        subprocess.run(["node", self.tempdir + "/" + "script.js", self.tempdir + "/test.txt"])
+        subprocess.run(["node", self.tempdir + "/" + "script.js", self.tempdir + "/test.txt", str(self.args.balance), str(self.args.crashes).lower()])
 
 if __name__ == "__main__":
-    if "-h" in sys.argv:
-        misc.printUsage()
-        exit(0)
-    elif len(sys.argv) < 3:
-        misc.printUsage()
-        exit(1)
-    options = []
-    for av in sys.argv:
-        if av.lower() == '-l':
-            options.append(['-l', 0])
-    Simulator(sys.argv[1], sys.argv[2], options).start()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("script", help="script to test", type=misc.isFileExist)
+    parser.add_argument("testfile", help="file with games", type=misc.isFileExist)
+    parser.add_argument("-l", "--logs", help="view script logs", action='store_true')
+    parser.add_argument("-c", "--crashes", help="display 25 biggest crashes", action='store_true')
+    parser.add_argument("-b", "--balance", help="starting balance", type=int, default=1000000000)
+    Simulator(parser.parse_args()).start()
     exit(0)

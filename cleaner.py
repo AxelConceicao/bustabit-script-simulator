@@ -3,12 +3,12 @@ import misc
 import shutil
 
 class Cleaner:
-    testfile = None
     tempdir = None
     games = 0
+    args = []
 
-    def __init__(self, testfile, tempdir):
-        self.testfile = testfile
+    def __init__(self, args, tempdir):
+        self.args = args
         self.tempdir = tempdir
         self.initDir()
 
@@ -32,7 +32,7 @@ class Cleaner:
 
     def clean(self):
         print("Cleaning...")
-        data = misc.loadFile(self.testfile)
+        data = misc.loadFile(self.args.testfile)
         file = open(self.tempdir + '/' + "test.txt", 'w')
         err = 0
         for line in data:
@@ -42,5 +42,5 @@ class Cleaner:
                 err += 1
         file.close()
         self.games = len(data) - err
-        print("'" + self.testfile + "' cleaned (" + str(self.games) 
+        print("'" + self.args.testfile + "' cleaned (" + str(self.games) 
         + " games and " + str(err) + " invalid lines)")
