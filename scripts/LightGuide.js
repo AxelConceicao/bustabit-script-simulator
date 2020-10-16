@@ -75,14 +75,14 @@ function onGameEnded() {
   if (lastGame.cashedAt) {
     let profit = Math.round((lastBet * config.payout.value - lastBet) / 100);
     netProfit += profit;
-    log(`Won ` + Math.round(profit) + ` bits`);
+    log('Won', Math.round(profit), 'bits');
     if (baseList.length > 1) {
       baseList.splice(baseList.length - 1, 1);
     }
     baseList.splice(0, 1);
   } else {
     var lost = lastBet / 100;
-    log(`Lost ` + Math.round(lost) + ` bits`);
+    log('Lost', Math.round(lost), 'bits');
     netProfit -= lost;
     baseList.push(lastBet / config.wager.value);
   }
@@ -91,6 +91,6 @@ function onGameEnded() {
 
 function makeBet() {
   let currentBet = getCurrentBetLightGuide();
-  log('Betting ' + Math.round(currentBet / 100) + ' bits');
+  log('Betting', Math.round(currentBet / 100), 'bits');
   engine.bet(Math.round(currentBet / 100) * 100, config.payout.value);
 }
