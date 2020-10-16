@@ -125,6 +125,11 @@ class Engine {
     console.log('Listener of ' + gameState + ' set');
   }
 
+  removeListener(gameState, listener) {
+    delete this.gameStateOn[gameState]
+    console.log('Listener of ' + gameState + ' removed');
+  }
+
   logs() {
     console.log('\n\x1b[1m-----------------------------------');
     console.log(' Base Bet in bits : ' + Math.round(this.baseBet / 100));
