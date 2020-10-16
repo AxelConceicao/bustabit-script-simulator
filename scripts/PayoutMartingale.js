@@ -92,9 +92,9 @@ function onGameEnded(info) {
     }
   }
 
-  if (currentPayout > config.stop.value) {
-    log('Was about to bet with payout', currentPayout, 'which triggers the stop');
-    engine.removeListener('GAME_STARTING', onGameStarted);
-    engine.removeListener('GAME_ENDED', onGameEnded);
-  }
+  // if (currentPayout > config.stop.value) {
+  //   log('Was about to bet with payout', currentPayout, 'which triggers the stop');
+  //   engine.removeListener('GAME_STARTING', onGameStarted);
+  //   engine.removeListener('GAME_ENDED', onGameEnded);
+  // }
 }
