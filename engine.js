@@ -59,6 +59,8 @@ class Engine {
     this.currentBet = undefined;
     this.currentPayout = undefined;
     this.history = new History();
+    this.baseBet = undefined
+    this.basePayout = undefined
   }
 
   get getState() {
@@ -112,6 +114,10 @@ class Engine {
     this.history.push(game);
     this.currentBet = satoshis;
     this.currentPayout = payout;
+    if (this.baseBet === undefined) {
+      this.baseBet = this.currentBet
+      this.basePayout = this.currentPayout
+    }
   }
 
   on(gameState, listener) {
@@ -121,6 +127,8 @@ class Engine {
 
   logs() {
     console.log('\n\x1b[1m-----------------------------------');
+    console.log(' Base Bet in bits : ' + Math.round(this.baseBet / 100));
+    console.log(' Base Payout : ' + this.basePayout);
     console.log(' Game Played : ' + this.gamePlayed);
     console.log(' Starting Balance : ' + Math.round(this.startingBalance / 100));
     console.log(' Profit ATL : ' + (Math.round(this.atl / 100) - Math.round(this.startingBalance / 100)));
