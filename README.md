@@ -95,7 +95,7 @@ python3 simulator.py scripts/Martingale.js tests/100000.txt -l -b 1000000 -c
 ```sh
 python3 simulator.py scripts/LightGuide.js tests/3814281.txt -c
 ```
-> This testfile can be downloaded on Google Drive see [Prerequisites](#prerequisites)
+> This testfile can be downloaded on Google Drive see [Installation](#installation)
 
 ![Example 4](screenshots/example4.png)
 
