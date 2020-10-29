@@ -201,7 +201,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-Project Link: [https://github.com/AxelConceicao/Bustabit-Script-Simulator](https://github.com/AxelConceicao/Bustabit-Script-Simulator)
+Project Link: [https://github.com/AxelConceicao/bustabit-script-simulator](https://github.com/AxelConceicao/bustabit-script-simulator)
 
 ## Acknowledgements
 
