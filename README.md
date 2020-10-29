@@ -52,7 +52,7 @@ sudo apt install nodejs
 
 1. Clone the repo
 ```sh
-git clone https://github.com/AxelConceicao/Bustabit-Script-Simulator.git
+git clone https://github.com/AxelConceicao/bustabit-script-simulator.git
 ```
 2. Download the .txt contains all Bustabit v2 games until october 2020 (3,8 milions games)
 https://drive.google.com/file/d/1cvPwaAzyztIX9v1cFwFft3OSflO52TkN/view
