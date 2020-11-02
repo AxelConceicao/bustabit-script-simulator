@@ -167,7 +167,6 @@ class Engine {
       this.history.first().cashedAt = this.currentPayout;
     }
   }
-  crashInfo;
 
   onGameEnded() {
     this.atl = Math.min(this.atl, this.balance);
